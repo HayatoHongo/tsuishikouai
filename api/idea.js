@@ -3,6 +3,9 @@ const axios = require('axios');
 // Vercelで設定された環境変数を読み込む
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
+// 環境変数の内容を確認する
+console.log('[DEBUG] Checking OPENAI_API_KEY: ', OPENAI_API_KEY ? 'Loaded' : 'Not Loaded');
+
 module.exports = async (req, res) => {
   console.log('[INFO] API endpoint accessed'); // エンドポイントアクセスのログ
 
@@ -18,6 +21,8 @@ module.exports = async (req, res) => {
     return;
   }
 
+  console.log('[INFO] API key is configured: ', OPENAI_API_KEY); // 環境変数の内容を表示
+  
   let body = '';
 
   // リクエストボディを受け取る
