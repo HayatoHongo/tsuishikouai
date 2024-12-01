@@ -4,14 +4,16 @@ const axios = require('axios');
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 module.exports = async (req, res) => {
+  console.log('[INFO] API endpoint accessed'); // エンドポイントアクセスのログ
+
   if (req.method !== 'POST') {
-    // POST以外のリクエストを拒否
+    console.error('[ERROR] Method Not Allowed');
     res.status(405).json({ error: 'Method Not Allowed' });
     return;
   }
 
   if (!OPENAI_API_KEY) {
-    // 環境変数が設定されていない場合
+    console.error('[ERROR] API key is not configured');
     res.status(500).json({ error: 'API key is not configured' });
     return;
   }
@@ -25,22 +27,25 @@ module.exports = async (req, res) => {
 
   req.on('end', async () => {
     try {
+      console.log('[INFO] Received body:', body); // 受信データのログ
+
       const { input, model = "gpt-4o-mini", temperature = 0.7 } = JSON.parse(body);
 
       if (!input) {
+        console.error('[ERROR] Input is required');
         res.status(400).json({ error: 'Input is required' });
         return;
       }
 
-      // OpenAI APIの呼び出し
+      console.log('[INFO] Sending request to OpenAI API');
       const response = await axios.post(
         'https://api.openai.com/v1/chat/completions',
         {
-          model, // モデル名（デフォルト: gpt-4o-mini）
+          model,
           messages: [
             { role: 'user', content: input }
           ],
-          temperature // テンプレートの柔軟性を指定（デフォルト: 0.7）
+          temperature
         },
         {
           headers: {
@@ -50,11 +55,13 @@ module.exports = async (req, res) => {
         }
       );
 
-      // レスポンスをクライアントに返す
+      console.log('[INFO] Received response from OpenAI:', response.data);
+
+      // OpenAIのレスポンスからメッセージを抽出
       const completion = response.data.choices[0]?.message?.content || 'No response generated.';
       res.status(200).json({ message: completion });
     } catch (error) {
-      console.error('Error communicating with OpenAI:', error.response?.data || error.message);
+      console.error('[ERROR] Failed to communicate with OpenAI:', error.response?.data || error.message);
       res.status(500).json({ error: 'Failed to communicate with OpenAI' });
     }
   });
