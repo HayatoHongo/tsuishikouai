@@ -1,50 +1,78 @@
+const http = require('http');
 const axios = require('axios');
 
-module.exports = async (req, res) => {
-  if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method not allowed' });
-    return;
-  }
+// サーバーポートの設定
+const PORT = process.env.PORT || 3000;
 
-  const { input } = req.body;
+// 環境変数の読み込み (dotenvは不要、Vercelで設定)
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-  if (!input) {
-    res.status(400).json({ error: 'Input is required' });
-    return;
-  }
+// サーバー作成
+const server = http.createServer(async (req, res) => {
+  // POSTリクエストの処理
+  if (req.method === 'POST' && req.url === '/api/idea') {
+    let body = '';
 
-  try {
-    // OpenAI GPT APIの呼び出し
-    const response = await axios.post(
-      'https://api.openai.com/v1/chat/completions',
-      {
-        model: 'gpt-4o',
-        messages: [
+    // リクエストボディを受け取る
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+
+    req.on('end', async () => {
+      try {
+        const { input } = JSON.parse(body);
+
+        if (!input) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Input is required' }));
+          return;
+        }
+
+        // OpenAI APIを呼び出す
+        const response = await axios.post(
+          'https://api.openai.com/v1/chat/completions',
           {
-            role: 'system',
-            content: 'システムメッセージをここに入力'
+            model: 'gpt-4',
+            messages: [
+              {
+                role: 'system',
+                content: 'Generate creative ideas based on user input.'
+              },
+              {
+                role: 'user',
+                content: input
+              }
+            ],
+            max_tokens: 300
           },
           {
-            role: 'user',
-            content: input
+            headers: {
+              Authorization: `Bearer ${OPENAI_API_KEY}`,
+              'Content-Type': 'application/json'
+            }
           }
-        ],
-        max_tokens: 300
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-          'Content-Type': 'application/json'
-        }
+        );
+
+        // OpenAIからのレスポンスを取得
+        const assistantMessage = response.data.choices[0].message.content;
+
+        // レスポンスを返す
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ message: assistantMessage }));
+      } catch (error) {
+        console.error('Error communicating with OpenAI:', error.response?.data || error.message);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Failed to communicate with OpenAI' }));
       }
-    );
-
-    // リスポンスから内容を抽出
-    const assistantMessage = response.data.choices[0].message.content;
-
-    res.status(200).json({ message: assistantMessage });
-  } catch (error) {
-    console.error('Error communicating with OpenAI:', error.response?.data || error.message);
-    res.status(500).json({ error: 'Failed to generate response from OpenAI' });
+    });
+  } else {
+    // その他のリクエストは404を返す
+    res.writeHead(404, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Not Found' }));
   }
-};
+});
+
+// サーバー起動
+server.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
