@@ -42,5 +42,7 @@ button:hover {
   background: #f9f9f9;
   border: 1px solid #ddd;
   border-radius: 4px;
+  height: 150px;
+  overflow-y: auto;
+  white-space: pre-wrap;
 }
-
