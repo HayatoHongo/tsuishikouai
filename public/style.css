@@ -36,10 +36,11 @@ button:hover {
   background-color: #0056b3;
 }
 
-#result {
+.result {
   margin-top: 20px;
   padding: 10px;
   background: #f9f9f9;
   border: 1px solid #ddd;
   border-radius: 4px;
 }
+
