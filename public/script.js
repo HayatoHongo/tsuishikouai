@@ -1,4 +1,5 @@
 let response1 = ''; // response1 を保存する変数
+let savedUserInput2 = ''; // userInput2 を保存する変数
 
 // ステップ1: ユーザー入力1を送信
 document.getElementById('submitBtn1').addEventListener('click', async () => {
@@ -16,13 +17,13 @@ document.getElementById('submitBtn1').addEventListener('click', async () => {
     const response = await fetch('/api/idea', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         input: userInput1,
         model: 'gpt-4o-mini',
-        temperature: 0.7
-      })
+        temperature: 0.7,
+      }),
     });
 
     if (!response.ok) {
@@ -34,40 +35,47 @@ document.getElementById('submitBtn1').addEventListener('click', async () => {
     const data = await response.json();
     response1 = data.message; // response1 を保存
     resultDiv1.textContent = response1;
+
+    // response1 が返ってきたら 10 秒後に自動送信を開始
+    setTimeout(autoSendStep2, 10000);
   } catch (error) {
     resultDiv1.textContent = '通信エラーが発生しました。';
   }
 });
 
-// ステップ2: response1 とユーザー入力2を送信
-document.getElementById('submitBtn2').addEventListener('click', async () => {
-  const userInput2 = document.getElementById('userInput2').value;
+// ステップ2: userInput2 の保存
+document.getElementById('userInput2').addEventListener('input', (event) => {
+  savedUserInput2 = event.target.value; // userInput2 をリアルタイムで保存
+});
+
+// ステップ2: response1 と保存された userInput2 を自動送信
+async function autoSendStep2() {
   const resultDiv2 = document.getElementById('response2');
 
   if (!response1) {
-    alert('まず最初のステップを完了してください！');
+    console.warn('response1 が存在しないため、自動送信をスキップします。');
     return;
   }
 
-  if (!userInput2) {
-    alert('追加のアイデアを入力してください！');
+  if (!savedUserInput2) {
+    console.warn('保存された userInput2 が空のため、自動送信をスキップします。');
     return;
   }
 
   resultDiv2.textContent = '処理中...';
 
   try {
-    const combinedInput = `${response1}\n\n追加のアイデア: ${userInput2}`;
+    const combinedInput = `${response1}\n\n追加のアイデア: ${savedUserInput2}`;
     const response = await fetch('/api/idea', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         input: combinedInput,
         model: 'gpt-4o-mini',
-        temperature: 0.7
-      })
+        temperature: 0.7,
+      }),
     });
 
     if (!response.ok) {
@@ -81,4 +89,4 @@ document.getElementById('submitBtn2').addEventListener('click', async () => {
   } catch (error) {
     resultDiv2.textContent = '通信エラーが発生しました。';
   }
-});
+}
