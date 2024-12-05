@@ -18,7 +18,7 @@ document.getElementById('submitBtn1').addEventListener('click', async () => {
     resultDiv1.textContent = response;
 
     // 10秒後に次のステップを開始
-    setTimeout(() => autoSendStep(2), 10000);
+    setTimeout(() => autoSendStep(2), 300);
   } catch (error) {
     resultDiv1.textContent = 'エラーが発生しました。';
   }
