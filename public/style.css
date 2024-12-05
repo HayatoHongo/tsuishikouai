@@ -46,9 +46,3 @@ button:hover {
   overflow-y: auto;
   white-space: pre-wrap;
 }
-
-.info-text {
-  font-size: 0.9em;
-  color: #666;
-  margin-bottom: 10px;
-}
