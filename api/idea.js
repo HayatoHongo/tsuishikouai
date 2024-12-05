@@ -30,6 +30,7 @@ module.exports = async (req, res) => {
       // 受け取ったデータをJSONとしてパース
       const parsedBody = JSON.parse(body);
       const { input, model = "gpt-4o-mini", temperature = 0.7 } = parsedBody;
+      console.log(`input is as follows: ${input}`);
 
       if (!input) {
         res.status(400).json({ error: 'Input is required' });
