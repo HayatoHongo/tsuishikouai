@@ -23,6 +23,7 @@ module.exports = async (req, res) => {
   req.on('end', async () => {
     try {
       const { model, messages } = JSON.parse(body);
+      console.log(`messages is as follows: ${messages}`)
 
       if (!model || !messages || !Array.isArray(messages)) {
         res.status(400).json({ error: 'Invalid request format' });
