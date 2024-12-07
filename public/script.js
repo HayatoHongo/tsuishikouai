@@ -13,6 +13,15 @@ function addStep() {
   stepDiv.classList.add('step-block');
   stepDiv.setAttribute('data-step', stepNumber);
 
+  // 上中央コントロール部
+  const topControls = document.createElement('div');
+  topControls.className = 'block-controls top-center';
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'removeStepBtn';
+  removeBtn.textContent = '− ブロック削除';
+  removeBtn.addEventListener('click', () => removeStep(stepNumber));
+  topControls.appendChild(removeBtn);
+
   // API選択
   const label = document.createElement('label');
   label.setAttribute('for', `apiSelect${stepNumber}`);
@@ -20,6 +29,7 @@ function addStep() {
 
   const select = document.createElement('select');
   select.id = `apiSelect${stepNumber}`;
+  select.addEventListener('change', () => updateBlockColor(stepDiv, select.value)); // 色変更イベント
   const optionP = document.createElement('option');
   optionP.value = 'perplexity';
   optionP.textContent = 'Perplexity';
@@ -46,15 +56,9 @@ function addStep() {
   addBtn.className = 'addStepBtn';
   addBtn.textContent = '＋ ブロック追加';
   addBtn.addEventListener('click', addStep);
-
-  const removeBtn = document.createElement('button');
-  removeBtn.className = 'removeStepBtn';
-  removeBtn.textContent = '− ブロック削除';
-  removeBtn.addEventListener('click', () => removeStep(stepNumber));
-
   bottomControls.appendChild(addBtn);
-  bottomControls.appendChild(removeBtn);
 
+  stepDiv.appendChild(topControls);
   stepDiv.appendChild(label);
   stepDiv.appendChild(select);
   stepDiv.appendChild(textarea);
@@ -62,6 +66,9 @@ function addStep() {
   stepDiv.appendChild(bottomControls);
 
   stepsContainer.appendChild(stepDiv);
+
+  // 初期色を設定
+  updateBlockColor(stepDiv, select.value);
 }
 
 // ステップを削除する関数
@@ -207,4 +214,15 @@ async function sendRequestToOpenAI(input) {
 
   const data = await response.json();
   return data.message;
+}
+
+// ブロックの背景色をAPI選択に応じて更新
+function updateBlockColor(block, apiType) {
+  if (apiType === 'perplexity') {
+    block.style.backgroundColor = '#d4f7d4'; // 緑色
+  } else if (apiType === 'openai') {
+    block.style.backgroundColor = '#e8d4f7'; // 紫色
+  } else {
+    block.style.backgroundColor = ''; // デフォルト
+  }
 }

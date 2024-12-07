@@ -9,6 +9,7 @@
   padding: 20px;
   margin-top: 20px;
   position: relative;
+  border-radius: 10px;
 }
 
 .block-controls {
@@ -19,16 +20,9 @@
 
 .block-controls.top-center {
   position: absolute;
-  top: 0;
+  top: -15px;
   left: 50%;
   transform: translate(-50%, -50%);
-}
-
-.block-controls.bottom-center {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translate(-50%, 50%);
 }
 
 textarea {
