@@ -12,7 +12,10 @@
   margin-top: 10px;
   background: #f0f0f0;
   padding: 10px;
+  min-height: 200px; /* レスポンス表示欄の最低高さを200pxに設定 */
+  overflow-y: auto;  /* 縦スクロールを有効化（長い場合スクロールバー表示）*/
 }
+
 
 textarea {
   width: 100%;
