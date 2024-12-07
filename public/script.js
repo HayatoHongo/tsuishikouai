@@ -1,18 +1,8 @@
 let responses = {}; // 各ステップのレスポンスを保存するオブジェクト
-let currentStepCount = 1; // 現在のステップ数(最初は1)
-const submitBtn1 = document.getElementById('submitBtn1');
+let currentStepCount = 1; // 現在のステップ数（最初は1: userInput1）
 const stepsContainer = document.getElementById('stepsContainer');
-const addStepBtn = document.getElementById('addStepBtn');
-const removeStepBtn = document.getElementById('removeStepBtn');
-
-// グローバルなステップ追加ボタン
-addStepBtn.addEventListener('click', addStep);
-
-// グローバルなステップ削除ボタン
-removeStepBtn.addEventListener('click', () => {
-  const lastStepNumber = currentStepCount;
-  removeStep(lastStepNumber);
-});
+const submitBtn1 = document.getElementById('submitBtn1');
+const addStepBtn1 = document.querySelector('.addStepBtn');
 
 // ステップブロックを追加する関数
 function addStep() {
@@ -22,15 +12,6 @@ function addStep() {
   const stepDiv = document.createElement('div');
   stepDiv.classList.add('step-block');
   stepDiv.setAttribute('data-step', stepNumber);
-
-  // 上中央コントロール部
-  const topControls = document.createElement('div');
-  topControls.className = 'block-controls top-center';
-  const removeBtn = document.createElement('button');
-  removeBtn.className = 'removeStepBtn';
-  removeBtn.textContent = '− ブロック削除';
-  removeBtn.addEventListener('click', () => removeStep(stepNumber));
-  topControls.appendChild(removeBtn);
 
   // API選択
   const label = document.createElement('label');
@@ -65,9 +46,15 @@ function addStep() {
   addBtn.className = 'addStepBtn';
   addBtn.textContent = '＋ ブロック追加';
   addBtn.addEventListener('click', addStep);
-  bottomControls.appendChild(addBtn);
 
-  stepDiv.appendChild(topControls);
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'removeStepBtn';
+  removeBtn.textContent = '− ブロック削除';
+  removeBtn.addEventListener('click', () => removeStep(stepNumber));
+
+  bottomControls.appendChild(addBtn);
+  bottomControls.appendChild(removeBtn);
+
   stepDiv.appendChild(label);
   stepDiv.appendChild(select);
   stepDiv.appendChild(textarea);
@@ -79,12 +66,6 @@ function addStep() {
 
 // ステップを削除する関数
 function removeStep(stepNumber) {
-  // ステップ1は削除不可
-  if (stepNumber === 1) {
-    alert('ステップ1は削除できません。');
-    return;
-  }
-
   const stepBlock = document.querySelector(`.step-block[data-step="${stepNumber}"]`);
   if (stepBlock) {
     stepBlock.remove();
@@ -93,7 +74,7 @@ function removeStep(stepNumber) {
   }
 }
 
-// ステップ1送信イベント
+// ステップ1の「送信」ボタンイベント
 submitBtn1.addEventListener('click', async () => {
   const userInput1 = document.getElementById('userInput1').value;
   const resultDiv1 = document.getElementById('response1');
@@ -120,6 +101,9 @@ submitBtn1.addEventListener('click', async () => {
     console.error('Error:', error);
   }
 });
+
+// userInput1の「＋ ブロック追加」ボタンイベント
+addStepBtn1.addEventListener('click', addStep);
 
 // 共通処理関数
 async function processStep(step, prevResponse, userInput, apiType) {
@@ -166,7 +150,7 @@ async function autoSendStep(step) {
     resultDiv.textContent = response;
 
     // 次のステップがある場合、10秒後に実行
-    if (Array.from(document.querySelectorAll('.step-block')).some(b => parseInt(b.getAttribute('data-step')) === step + 1)) {
+    if (step < currentStepCount) {
       setTimeout(() => autoSendStep(step + 1), 10000);
     }
   } catch (error) {

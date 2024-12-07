@@ -10,7 +10,7 @@
   <div class="container">
     <h1>追思考AI プロトタイプ</h1>
 
-    <!-- User Input 1 (固定) + API選択 -->
+    <!-- ステップ1のブロック -->
     <div class="step-block" data-step="1">
       <label for="apiSelect1">使用するAPI:</label>
       <select id="apiSelect1">
@@ -20,16 +20,13 @@
       <textarea id="userInput1" placeholder="プロンプトを入力してください (ステップ1)..."></textarea>
       <button id="submitBtn1">送信 (ステップ1)</button>
       <div id="response1" class="result"></div>
+
+      <div class="block-controls bottom-center">
+        <button class="addStepBtn">＋ ブロック追加</button>
+      </div>
     </div>
 
-    <div id="stepsContainer">
-      <!-- このコンテナにステップ2以降が追加される -->
-    </div>
-
-    <div class="controls">
-      <button id="addStepBtn">ステップを追加</button>
-      <button id="removeStepBtn">最後のステップを削除</button>
-    </div>
+    <div id="stepsContainer"></div>
   </div>
 
   <script src="script.js"></script>
