@@ -1,14 +1,60 @@
 let responses = {}; // 各ステップのレスポンスを保存するオブジェクト
-let currentStepCount = 1; // 現在のステップ数（最初は1: userInput1）
-const stepsContainer = document.getElementById('stepsContainer');
-const submitBtn1 = document.getElementById('submitBtn1');
-const addStepBtn1 = document.querySelector('.addStepBtn');
+let currentStepCount = 1; // 現在のステップ数（初期は1）
 
 // ステップブロックを追加する関数
-function addStep() {
+function addStep(afterStepElement) {
   currentStepCount++;
-  const stepNumber = currentStepCount;
+  const stepDiv = createStepBlock(currentStepCount);
 
+  // 指定されたブロックの直下に追加
+  afterStepElement.insertAdjacentElement('afterend', stepDiv);
+
+  // ステップ番号を再割り振り
+  reassignStepNumbers();
+}
+
+// ステップ番号を再割り振りする関数
+function reassignStepNumbers() {
+  const stepBlocks = document.querySelectorAll('.step-block');
+  stepBlocks.forEach((block, index) => {
+    const newStepNumber = index + 1; // 新しい番号
+    block.setAttribute('data-step', newStepNumber);
+
+    // IDとPlaceholderの更新
+    const textarea = block.querySelector('textarea');
+    const label = block.querySelector('label');
+    const select = block.querySelector('select');
+    const responseDiv = block.querySelector('.result');
+
+    if (textarea) {
+      textarea.id = `userInput${newStepNumber}`;
+      textarea.placeholder = `プロンプトを編集してください (ステップ${newStepNumber})...`;
+    }
+    if (label) {
+      label.setAttribute('for', `apiSelect${newStepNumber}`);
+    }
+    if (select) {
+      select.id = `apiSelect${newStepNumber}`;
+      select.addEventListener('change', () => updateBlockColor(block, select.value));
+    }
+    if (responseDiv) {
+      responseDiv.id = `response${newStepNumber}`;
+    }
+
+    // ボタンイベント再設定
+    const addButton = block.querySelector('.addStepBtn');
+    const removeButton = block.querySelector('.removeStepBtn');
+    if (addButton) {
+      addButton.onclick = () => addStep(block);
+    }
+    if (removeButton) {
+      removeButton.onclick = () => removeStep(block);
+    }
+  });
+}
+
+// 新しいステップブロックを作成する関数
+function createStepBlock(stepNumber) {
   const stepDiv = document.createElement('div');
   stepDiv.classList.add('step-block');
   stepDiv.setAttribute('data-step', stepNumber);
@@ -19,7 +65,7 @@ function addStep() {
   const removeBtn = document.createElement('button');
   removeBtn.className = 'removeStepBtn';
   removeBtn.textContent = '− ブロック削除';
-  removeBtn.addEventListener('click', () => removeStep(stepNumber));
+  removeBtn.onclick = () => removeStep(stepDiv);
   topControls.appendChild(removeBtn);
 
   // API選択
@@ -29,7 +75,7 @@ function addStep() {
 
   const select = document.createElement('select');
   select.id = `apiSelect${stepNumber}`;
-  select.addEventListener('change', () => updateBlockColor(stepDiv, select.value)); // 色変更イベント
+  select.addEventListener('change', () => updateBlockColor(stepDiv, select.value));
   const optionP = document.createElement('option');
   optionP.value = 'perplexity';
   optionP.textContent = 'Perplexity';
@@ -55,7 +101,8 @@ function addStep() {
   const addBtn = document.createElement('button');
   addBtn.className = 'addStepBtn';
   addBtn.textContent = '＋ ブロック追加';
-  addBtn.addEventListener('click', addStep);
+  addBtn.onclick = () => addStep(stepDiv);
+
   bottomControls.appendChild(addBtn);
 
   stepDiv.appendChild(topControls);
@@ -65,23 +112,20 @@ function addStep() {
   stepDiv.appendChild(responseDiv);
   stepDiv.appendChild(bottomControls);
 
-  stepsContainer.appendChild(stepDiv);
-
   // 初期色を設定
   updateBlockColor(stepDiv, select.value);
+
+  return stepDiv;
 }
 
 // ステップを削除する関数
-function removeStep(stepNumber) {
-  const stepBlock = document.querySelector(`.step-block[data-step="${stepNumber}"]`);
-  if (stepBlock) {
-    stepBlock.remove();
-    delete responses[stepNumber];
-    currentStepCount--; // ステップ数を減らす
-  }
+function removeStep(stepBlock) {
+  stepBlock.remove();
+  reassignStepNumbers();
 }
 
 // ステップ1の「送信」ボタンイベント
+const submitBtn1 = document.getElementById('submitBtn1');
 submitBtn1.addEventListener('click', async () => {
   const userInput1 = document.getElementById('userInput1').value;
   const resultDiv1 = document.getElementById('response1');
@@ -98,123 +142,18 @@ submitBtn1.addEventListener('click', async () => {
     const response = await processStep(1, '', userInput1, apiSelect1);
     responses[1] = response;
     resultDiv1.textContent = response;
-
-    // 次のステップがあれば10秒後に実行
-    if (currentStepCount > 1) {
-      setTimeout(() => autoSendStep(2), 10000);
-    }
   } catch (error) {
     resultDiv1.textContent = 'エラーが発生しました。';
     console.error('Error:', error);
   }
 });
 
-// userInput1の「＋ ブロック追加」ボタンイベント
-addStepBtn1.addEventListener('click', addStep);
-
-// 共通処理関数
-async function processStep(step, prevResponse, userInput, apiType) {
-  const combinedInput = prevResponse ? `${prevResponse}\n\n${userInput}` : userInput;
-  if (apiType === 'perplexity') {
-    return await sendRequestToPerplexity(combinedInput);
-  } else if (apiType === 'openai') {
-    return await sendRequestToOpenAI(combinedInput);
-  } else {
-    throw new Error(`不明なAPIタイプ: ${apiType}`);
-  }
-}
-
-// 自動送信処理 (ステップ2以降)
-async function autoSendStep(step) {
-  const prevResponse = responses[step - 1];
-  const userInputElement = document.getElementById(`userInput${step}`);
-  const resultDiv = document.getElementById(`response${step}`);
-  const apiSelect = document.getElementById(`apiSelect${step}`);
-
-  if (!prevResponse) {
-    console.warn(`ステップ${step - 1}のレスポンスが存在しないため処理をスキップします。`);
-    return;
-  }
-
-  if (!userInputElement) {
-    console.warn(`ステップ${step}の要素が存在しないため、処理を終了します。`);
-    return;
-  }
-
-  const userInput = userInputElement.value;
-  const apiType = apiSelect ? apiSelect.value : 'openai';
-
-  if (!userInput) {
-    console.warn(`ステップ${step}のプロンプトが空です。処理をスキップします。`);
-    return;
-  }
-
-  resultDiv.textContent = '処理中...';
-
-  try {
-    const response = await processStep(step, prevResponse, userInput, apiType);
-    responses[step] = response;
-    resultDiv.textContent = response;
-
-    // 次のステップがある場合、10秒後に実行
-    if (step < currentStepCount) {
-      setTimeout(() => autoSendStep(step + 1), 10000);
-    }
-  } catch (error) {
-    resultDiv.textContent = 'エラーが発生しました。';
-    console.error('Error:', error);
-  }
-}
-
-// Perplexity APIリクエスト送信
-async function sendRequestToPerplexity(input) {
-  const response = await fetch('/api/search', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'llama-3.1-sonar-small-128k-online',
-      messages: [
-        { role: 'system', content: 'Be precise and concise.' },
-        { role: 'user', content: input },
-      ],
-    }),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || '不明なエラー');
-  }
-
-  const data = await response.json();
-  return data.choices
-    ? data.choices.map(choice => choice.message.content).join('\n\n')
-    : 'No response received from Perplexity API.';
-}
-
-// OpenAI APIリクエスト送信
-async function sendRequestToOpenAI(input) {
-  const response = await fetch('/api/idea', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      input,
-      model: 'gpt-4o-mini',
-      temperature: 0.7,
-    }),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || '不明なエラー');
-  }
-
-  const data = await response.json();
-  return data.message;
-}
+// ステップ1のAPI選択による背景色変更
+const apiSelect1 = document.getElementById('apiSelect1');
+apiSelect1.addEventListener('change', () => {
+  const stepDiv1 = document.querySelector('.step-block[data-step="1"]');
+  updateBlockColor(stepDiv1, apiSelect1.value);
+});
 
 // ブロックの背景色をAPI選択に応じて更新
 function updateBlockColor(block, apiType) {
