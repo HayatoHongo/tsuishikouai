@@ -2,12 +2,23 @@ let responses = {}; // 各ステップのレスポンスを保存するオブジ
 let currentStepCount = 1; // 現在のステップ数(最初は1)
 const submitBtn1 = document.getElementById('submitBtn1');
 const stepsContainer = document.getElementById('stepsContainer');
+const addStepBtn = document.getElementById('addStepBtn');
+const removeStepBtn = document.getElementById('removeStepBtn');
+
+// グローバルなステップ追加ボタン
+addStepBtn.addEventListener('click', addStep);
+
+// グローバルなステップ削除ボタン
+removeStepBtn.addEventListener('click', () => {
+  const lastStepNumber = currentStepCount;
+  removeStep(lastStepNumber);
+});
 
 // ステップブロックを追加する関数
 function addStep() {
   currentStepCount++;
   const stepNumber = currentStepCount;
-  
+
   const stepDiv = document.createElement('div');
   stepDiv.classList.add('step-block');
   stepDiv.setAttribute('data-step', stepNumber);
@@ -35,7 +46,7 @@ function addStep() {
   optionO.value = 'openai';
   optionO.textContent = 'OpenAI';
   optionO.selected = true;
-  
+
   select.appendChild(optionP);
   select.appendChild(optionO);
 
@@ -78,7 +89,7 @@ function removeStep(stepNumber) {
   if (stepBlock) {
     stepBlock.remove();
     delete responses[stepNumber];
-    // currentStepCountは減らさず、そのままにしておく（ユニークIDとして扱う）
+    currentStepCount--; // ステップ数を減らす
   }
 }
 
