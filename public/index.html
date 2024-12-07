@@ -1,31 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>追思考AI</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
   <div class="container">
     <h1>追思考AI プロトタイプ</h1>
-    
-    <!-- User Input 1 -->
+
+    <!-- User Input 1 (固定) -->
     <textarea id="userInput1" placeholder="プロンプトを入力してください (ステップ1)..."></textarea>
     <button id="submitBtn1">送信 (ステップ1)</button>
     <div id="response1" class="result"></div>
-    
-    <!-- User Input 2 -->
-    <textarea id="userInput2" placeholder="プロンプトを編集してください (ステップ2)..."></textarea>
-    <div id="response2" class="result"></div>
 
-    <!-- User Input 3 -->
-    <textarea id="userInput3" placeholder="プロンプトを編集してください (ステップ3)..."></textarea>
-    <div id="response3" class="result"></div>
+    <div id="stepsContainer">
+      <!-- このコンテナの中に、追加ステップ (userInput2以降) が挿入されます -->
+    </div>
 
-    <!-- User Input 4 -->
-    <textarea id="userInput4" placeholder="プロンプトを編集してください (ステップ4)..."></textarea>
-    <div id="response4" class="result"></div>
+    <div class="controls">
+      <button id="addStepBtn">ステップを追加</button>
+      <button id="removeStepBtn">最後のステップを削除</button>
+    </div>
   </div>
 
   <script src="script.js"></script>
