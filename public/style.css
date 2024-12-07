@@ -5,17 +5,31 @@
 }
 
 .step-block {
+  border: 1px solid #ccc;
+  padding: 20px;
   margin-top: 20px;
+  position: relative;
 }
 
-.result {
-  margin-top: 10px;
-  background: #f0f0f0;
-  padding: 10px;
-  min-height: 200px; /* レスポンス表示欄の最低高さを200pxに設定 */
-  overflow-y: auto;  /* 縦スクロールを有効化（長い場合スクロールバー表示）*/
+.block-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
 }
 
+.block-controls.top-center {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.block-controls.bottom-center {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, 50%);
+}
 
 textarea {
   width: 100%;
@@ -24,11 +38,14 @@ textarea {
   display: block;
 }
 
-.controls {
-  margin-top: 20px;
+.result {
+  margin-top: 10px;
+  background: #f0f0f0;
+  padding: 10px;
+  min-height: 100px;
+  overflow-y: auto;
 }
 
 button {
-  margin-top: 10px;
-  margin-right: 5px;
+  margin: 5px;
 }

@@ -1,35 +1,41 @@
 let responses = {}; // 各ステップのレスポンスを保存するオブジェクト
-let currentStepCount = 1; // 現在何ステップあるか
-
+let currentStepCount = 1; // 現在のステップ数(最初は1)
 const submitBtn1 = document.getElementById('submitBtn1');
-const addStepBtn = document.getElementById('addStepBtn');
-const removeStepBtn = document.getElementById('removeStepBtn');
 const stepsContainer = document.getElementById('stepsContainer');
 
-// ステップを追加する関数
+// ステップブロックを追加する関数
 function addStep() {
   currentStepCount++;
   const stepNumber = currentStepCount;
+  
   const stepDiv = document.createElement('div');
   stepDiv.classList.add('step-block');
   stepDiv.setAttribute('data-step', stepNumber);
 
+  // 上中央コントロール部
+  const topControls = document.createElement('div');
+  topControls.className = 'block-controls top-center';
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'removeStepBtn';
+  removeBtn.textContent = '− ブロック削除';
+  removeBtn.addEventListener('click', () => removeStep(stepNumber));
+  topControls.appendChild(removeBtn);
+
+  // API選択
   const label = document.createElement('label');
   label.setAttribute('for', `apiSelect${stepNumber}`);
   label.textContent = '使用するAPI:';
 
   const select = document.createElement('select');
   select.id = `apiSelect${stepNumber}`;
-  // デフォルトはOpenAIとするが、必要ならPerplexityなど変更可能
   const optionP = document.createElement('option');
   optionP.value = 'perplexity';
   optionP.textContent = 'Perplexity';
-
   const optionO = document.createElement('option');
   optionO.value = 'openai';
   optionO.textContent = 'OpenAI';
-  optionO.selected = true; // デフォルトOpenAI
-
+  optionO.selected = true;
+  
   select.appendChild(optionP);
   select.appendChild(optionO);
 
@@ -41,25 +47,39 @@ function addStep() {
   responseDiv.id = `response${stepNumber}`;
   responseDiv.className = 'result';
 
+  // 下中央コントロール部
+  const bottomControls = document.createElement('div');
+  bottomControls.className = 'block-controls bottom-center';
+  const addBtn = document.createElement('button');
+  addBtn.className = 'addStepBtn';
+  addBtn.textContent = '＋ ブロック追加';
+  addBtn.addEventListener('click', addStep);
+  bottomControls.appendChild(addBtn);
+
+  stepDiv.appendChild(topControls);
   stepDiv.appendChild(label);
   stepDiv.appendChild(select);
   stepDiv.appendChild(textarea);
   stepDiv.appendChild(responseDiv);
+  stepDiv.appendChild(bottomControls);
 
   stepsContainer.appendChild(stepDiv);
 }
 
-// 最後のステップを削除する関数
-function removeStep() {
-  if (currentStepCount <= 1) {
-    alert('これ以上ステップを削除できません。ステップ1は必須です。');
+// ステップを削除する関数
+function removeStep(stepNumber) {
+  // ステップ1は削除不可
+  if (stepNumber === 1) {
+    alert('ステップ1は削除できません。');
     return;
   }
-  const stepBlocks = stepsContainer.querySelectorAll('.step-block');
-  const lastStep = stepBlocks[stepBlocks.length - 1];
-  lastStep.remove();
-  delete responses[currentStepCount];
-  currentStepCount--;
+
+  const stepBlock = document.querySelector(`.step-block[data-step="${stepNumber}"]`);
+  if (stepBlock) {
+    stepBlock.remove();
+    delete responses[stepNumber];
+    // currentStepCountは減らさず、そのままにしておく（ユニークIDとして扱う）
+  }
 }
 
 // ステップ1送信イベント
@@ -76,7 +96,6 @@ submitBtn1.addEventListener('click', async () => {
   resultDiv1.textContent = '処理中...';
 
   try {
-    // ステップ1は前のレスポンスがないため、空文字をprevResponseに
     const response = await processStep(1, '', userInput1, apiSelect1);
     responses[1] = response;
     resultDiv1.textContent = response;
@@ -91,11 +110,9 @@ submitBtn1.addEventListener('click', async () => {
   }
 });
 
-// ステップを処理する共通関数
+// 共通処理関数
 async function processStep(step, prevResponse, userInput, apiType) {
-  // prevResponseがない場合は、単純にuserInputのみでよい（ステップ1向け）
   const combinedInput = prevResponse ? `${prevResponse}\n\n${userInput}` : userInput;
-
   if (apiType === 'perplexity') {
     return await sendRequestToPerplexity(combinedInput);
   } else if (apiType === 'openai') {
@@ -123,7 +140,7 @@ async function autoSendStep(step) {
   }
 
   const userInput = userInputElement.value;
-  const apiType = apiSelect ? apiSelect.value : 'openai'; // デフォルトopenai
+  const apiType = apiSelect ? apiSelect.value : 'openai';
 
   if (!userInput) {
     console.warn(`ステップ${step}のプロンプトが空です。処理をスキップします。`);
@@ -138,7 +155,7 @@ async function autoSendStep(step) {
     resultDiv.textContent = response;
 
     // 次のステップがある場合、10秒後に実行
-    if (step < currentStepCount) {
+    if (Array.from(document.querySelectorAll('.step-block')).some(b => parseInt(b.getAttribute('data-step')) === step + 1)) {
       setTimeout(() => autoSendStep(step + 1), 10000);
     }
   } catch (error) {
@@ -196,9 +213,3 @@ async function sendRequestToOpenAI(input) {
   const data = await response.json();
   return data.message;
 }
-
-// ボタンイベント
-addStepBtn.addEventListener('click', addStep);
-removeStepBtn.addEventListener('click', removeStep);
-
-// 初期状態では userInput1 のみ。API選択は追加済み。
