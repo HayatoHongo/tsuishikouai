@@ -7,7 +7,7 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 console.log('[DEBUG] Checking OPENAI_API_KEY: ', OPENAI_API_KEY ? 'Loaded' : 'Not Loaded');
 
 module.exports = async (req, res) => {
-  console.log('[INFO] API endpoint accessed');
+  console.log('[INFO] OpenAI API endpoint accessed');
 
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method Not Allowed' });

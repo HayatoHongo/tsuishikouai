@@ -10,13 +10,20 @@
   <div class="container">
     <h1>追思考AI プロトタイプ</h1>
 
-    <!-- User Input 1 (固定) -->
-    <textarea id="userInput1" placeholder="プロンプトを入力してください (ステップ1)..."></textarea>
-    <button id="submitBtn1">送信 (ステップ1)</button>
-    <div id="response1" class="result"></div>
+    <!-- User Input 1 (固定) + API選択 -->
+    <div class="step-block" data-step="1">
+      <label for="apiSelect1">使用するAPI:</label>
+      <select id="apiSelect1">
+        <option value="perplexity" selected>Perplexity</option>
+        <option value="openai">OpenAI</option>
+      </select>
+      <textarea id="userInput1" placeholder="プロンプトを入力してください (ステップ1)..."></textarea>
+      <button id="submitBtn1">送信 (ステップ1)</button>
+      <div id="response1" class="result"></div>
+    </div>
 
     <div id="stepsContainer">
-      <!-- このコンテナの中に、追加ステップ (userInput2以降) が挿入されます -->
+      <!-- このコンテナにステップ2以降が追加される -->
     </div>
 
     <div class="controls">
