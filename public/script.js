@@ -148,9 +148,22 @@ submitBtn1.addEventListener('click', async () => {
   }
 });
 
-// ステップ1のAPI選択による背景色変更
+// userInput1の「＋ ブロック追加」ボタンイベント
+const addStepBtn1 = document.querySelector('.addStepBtn');
+addStepBtn1.addEventListener('click', () => {
+  const stepDiv1 = document.querySelector('.step-block[data-step="1"]');
+  addStep(stepDiv1);
+});
+
+// userInput1のAPI選択による背景色変更
 const apiSelect1 = document.getElementById('apiSelect1');
 apiSelect1.addEventListener('change', () => {
+  const stepDiv1 = document.querySelector('.step-block[data-step="1"]');
+  updateBlockColor(stepDiv1, apiSelect1.value);
+});
+
+// 初期化時にuserInput1の背景色を設定
+document.addEventListener('DOMContentLoaded', () => {
   const stepDiv1 = document.querySelector('.step-block[data-step="1"]');
   updateBlockColor(stepDiv1, apiSelect1.value);
 });
