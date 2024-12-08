@@ -20,7 +20,7 @@ function reassignStepNumbers() {
     const newStepNumber = index + 1; // 新しい番号
     block.setAttribute('data-step', newStepNumber);
 
-    // IDとPlaceholderの更新
+    // IDや属性を更新
     const textarea = block.querySelector('textarea');
     const label = block.querySelector('label');
     const select = block.querySelector('select');
@@ -35,6 +35,7 @@ function reassignStepNumbers() {
     }
     if (select) {
       select.id = `apiSelect${newStepNumber}`;
+      // イベント再設定
       select.addEventListener('change', () => updateBlockColor(block, select.value));
     }
     if (responseDiv) {
@@ -142,6 +143,12 @@ submitBtn1.addEventListener('click', async () => {
     const response = await processStep(1, '', userInput1, apiSelect1);
     responses[1] = response;
     resultDiv1.textContent = response;
+
+    // ステップ1が完了したら次のステップがあれば1秒後に自動開始
+    const stepCount = document.querySelectorAll('.step-block').length;
+    if (1 < stepCount) {
+      setTimeout(() => autoSendStep(2), 1000);
+    }
   } catch (error) {
     resultDiv1.textContent = 'エラーが発生しました。';
     console.error('Error:', error);
@@ -167,6 +174,116 @@ document.addEventListener('DOMContentLoaded', () => {
   const stepDiv1 = document.querySelector('.step-block[data-step="1"]');
   updateBlockColor(stepDiv1, apiSelect1.value);
 });
+
+// 自動送信処理
+async function autoSendStep(step) {
+  const stepCount = document.querySelectorAll('.step-block').length;
+  if (step > stepCount) {
+    // 次のステップが存在しない場合は終了
+    return;
+  }
+
+  const prevResponse = responses[step - 1];
+  const userInputElement = document.getElementById(`userInput${step}`);
+  const resultDiv = document.getElementById(`response${step}`);
+  const apiSelect = document.getElementById(`apiSelect${step}`);
+
+  if (!prevResponse) {
+    console.warn(`ステップ${step - 1}のレスポンスが存在しないため処理をスキップします。`);
+    return;
+  }
+
+  if (!userInputElement) {
+    console.warn(`ステップ${step}の要素が存在しないため、処理を終了します。`);
+    return;
+  }
+
+  const userInput = userInputElement.value;
+  const apiType = apiSelect ? apiSelect.value : 'openai';
+
+  if (!userInput) {
+    console.warn(`ステップ${step}のプロンプトが空です。処理をスキップします。`);
+    return;
+  }
+
+  resultDiv.textContent = '処理中...';
+
+  try {
+    const response = await processStep(step, prevResponse, userInput, apiType);
+    responses[step] = response;
+    resultDiv.textContent = response;
+
+    // 次のステップがあれば1秒後に実行
+    if (step < stepCount) {
+      setTimeout(() => autoSendStep(step + 1), 1000);
+    }
+  } catch (error) {
+    resultDiv.textContent = 'エラーが発生しました。';
+    console.error('Error:', error);
+  }
+}
+
+// 共通処理関数
+async function processStep(step, prevResponse, userInput, apiType) {
+  const combinedInput = prevResponse ? `${prevResponse}\n\n${userInput}` : userInput;
+  if (apiType === 'perplexity') {
+    return await sendRequestToPerplexity(combinedInput);
+  } else if (apiType === 'openai') {
+    return await sendRequestToOpenAI(combinedInput);
+  } else {
+    throw new Error(`不明なAPIタイプ: ${apiType}`);
+  }
+}
+
+// Perplexity APIリクエスト送信
+async function sendRequestToPerplexity(input) {
+  const response = await fetch('/api/search', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'llama-3.1-sonar-small-128k-online',
+      messages: [
+        { role: 'system', content: 'Be precise and concise.' },
+        { role: 'user', content: input },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || '不明なエラー');
+  }
+
+  const data = await response.json();
+  return data.choices
+    ? data.choices.map(choice => choice.message.content).join('\n\n')
+    : 'No response received from Perplexity API.';
+}
+
+// OpenAI APIリクエスト送信
+async function sendRequestToOpenAI(input) {
+  const response = await fetch('/api/idea', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      input,
+      model: 'gpt-4o-mini',
+      temperature: 0.7,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || '不明なエラー');
+  }
+
+  const data = await response.json();
+  return data.message;
+}
 
 // ブロックの背景色をAPI選択に応じて更新
 function updateBlockColor(block, apiType) {
