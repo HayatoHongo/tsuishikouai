@@ -202,7 +202,7 @@ async function autoSendStep(step) {
   const apiType = apiSelect ? apiSelect.value : 'openai';
 
   if (!userInput) {
-    console.warn(`ステップ${step}のプロンプトが空です。処理をスキップします。`);
+    console.warn(`ステップ${step}のプロンプトが空です。処理を終了します。`);
     return;
   }
 
@@ -271,7 +271,7 @@ async function sendRequestToOpenAI(input) {
     },
     body: JSON.stringify({
       input,
-      model: 'gpt-4o-mini',
+      model: 'gpt-o1-mini',
       temperature: 0.7,
     }),
   });

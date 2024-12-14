@@ -29,7 +29,7 @@ module.exports = async (req, res) => {
     try {
       // 受け取ったデータをJSONとしてパース
       const parsedBody = JSON.parse(body);
-      const { input, model = "gpt-4o-mini", temperature = 0.7 } = parsedBody;
+      const { input, model = "gpt-o1-mini", temperature = 0.7 } = parsedBody;
       console.log(`input is as follows: ${input}`);
 
       if (!input) {
