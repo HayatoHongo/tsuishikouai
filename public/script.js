@@ -271,7 +271,7 @@ async function sendRequestToOpenAI(input) {
     },
     body: JSON.stringify({
       input,
-      model: 'gpt-o1-preview',
+      model: 'o1-preview',
       temperature: 0.7,
     }),
   });
